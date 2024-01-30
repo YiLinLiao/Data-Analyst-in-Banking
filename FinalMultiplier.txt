@@ -1,5 +1,6 @@
-FinalMultiplier
-
+Final Multiplier Procedure
+--This script was used to calculate the multiplier based on the year rate and period.
+--It is a procedure/function of Teradata, call it when you need it.
 
 REPLACE PROCEDURE LAB_NAME.FinalMultiplier(IN dStart_Date DATE, IN dEnd_Date DATE )
 BEGIN
