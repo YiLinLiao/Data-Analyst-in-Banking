@@ -1,0 +1,42 @@
+
+
+TVM_Calculator
+REPLACE PROCEDURE LAB_NAME.TVM_Calculator(IN dRN INT)
+BEGIN
+    DECLARE indexDate DATE;
+    DECLARE Date_End DATE;
+    
+    DECLARE acct VARCHAR(20);
+    DECLARE amt DECIMAL(11,6);
+    DECLARE TVM_Multiplier DECIMAL(14,6);
+    DECLARE TVM_Compo_Monthly DECIMAL(14,6);
+    DECLARE Total_Redress_Amount DECIMAL(14,6);
+    DECLARE RNum INT;
+    
+    
+    SET RNum = dRN; 
+
+    WHILE RNum > 0
+    DO
+        BEGIN
+        
+        SET acct = (SELECT Acct_number FROM LAB_NAME.TVM_Input WHERE RNumber = RNum );
+        
+        SET indexDate = (SELECT Date_From FROM LAB_NAME.TVM_Input WHERE RNumber = RNum) ;                   
+        SET Date_End =  (SELECT Date_To FROM LAB_NAME.TVM_Input WHERE RNumber = RNum );       
+        
+        SET amt = (SELECT Amount FROM LAB_NAME.TVM_Input WHERE RNumber = RNum);
+        
+        SET TVM_Multiplier = (SELECT FINAL_Multiplier FROM  LAB_NAME.TVM_Multiplier_f WHERE TVM_DATE = indexDate);  --Please replace this TVM_Multiplier table with a new name
+        SET TVM_Compo_Monthly = (amt * TVM_Multiplier)- amt;
+        SET Total_Redress_Amount = amt + TVM_Compo_Monthly;
+        
+        CALL DBC.SysExecSQL(sSQL =
+        'INSERT INTO LAB_NAME.TVM_Output VALUES ('||acct||', '''|| indexDate ||''', '''||Date_End  ||''', '||amt||', '||TVM_Multiplier||', '
+        ||TVM_Compo_Monthly||', '||Total_Redress_Amount ||')'); 
+        SET RNum = RNum - 1;    
+
+        END ;
+        
+    END while ;
+END;
