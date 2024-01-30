@@ -1,0 +1,97 @@
+Purged_Difference_Calculator
+
+REPLACE PROCEDURE LAB_NAME.Purged_Difference_Calculator (IN dRN INT)
+BEGIN
+    DECLARE acct VARCHAR(20);
+    DECLARE TOBE_acct VARCHAR(20);
+    DECLARE Date_Month DATE;
+    DECLARE Principal DECIMAL(20,2);
+    DECLARE Interest    DECIMAL(20,2);
+    DECLARE Total DECIMAL(20,2);
+    DECLARE Total_Overcharge DECIMAL(20,2);
+    
+    DECLARE ASIS_Date_Month DATE;
+    DECLARE TOBE_Date_Month DATE;
+    
+    DECLARE ASIS_P DECIMAL(20,2);
+    DECLARE TOBE_P DECIMAL(20,2);
+    
+    DECLARE ASIS_I DECIMAL(20,2);
+    DECLARE TOBE_I DECIMAL(20,2);
+    
+    DECLARE ASIS_T DECIMAL(20,2);
+    DECLARE TOBE_T DECIMAL(20,2);
+    
+    DECLARE ASIS_Year_Rate DECIMAL(20,9);
+    DECLARE TOBE_Year_Rate DECIMAL(20,9);
+    
+    DECLARE RNum INT;
+    
+    SET RNum = dRN;
+    ---------------------------------------------------------------------------------------------------
+    SET acct = (SELECT Acct FROM LAB_NAME.Purged_ASIS WHERE Term = RNum);
+    SET TOBE_acct = (SELECT Acct FROM LAB_NAME.Purged_ASIS WHERE Term = RNum);
+
+    SET ASIS_Year_Rate = (SELECT Year_Rate FROM LAB_NAME.Purged_ASIS WHERE Term = RNum);
+    SET TOBE_Year_Rate = (SELECT Year_Rate FROM LAB_NAME.Purged_TOBE WHERE Term = RNum);
+    
+    SET ASIS_Date_Month = (SELECT MONTH_DATE FROM LAB_NAME.Purged_ASIS WHERE Term = RNum);
+    SET TOBE_Date_Month = (SELECT MONTH_DATE FROM LAB_NAME.Purged_TOBE WHERE Term = RNum);
+    SET Date_Month = (SELECT MONTH_DATE FROM LAB_NAME.Purged_ASIS WHERE Term = RNum);
+    
+    SET ASIS_P = (SELECT Principal FROM LAB_NAME.Purged_ASIS WHERE Term = RNum);
+    SET TOBE_P = (SELECT Principal FROM LAB_NAME.Purged_TOBE WHERE Term = RNum);
+    SET Principal = ASIS_P - TOBE_P;
+    
+    SET ASIS_I = (SELECT Interest FROM LAB_NAME.Purged_ASIS WHERE Term = RNum);
+    SET TOBE_I = (SELECT Interest FROM LAB_NAME.Purged_TOBE WHERE Term = RNum);
+    SET Interest = ASIS_I - TOBE_I;
+
+    SET ASIS_T = (SELECT Total FROM LAB_NAME.Purged_ASIS WHERE Term = RNum);
+    SET TOBE_T = (SELECT Total FROM LAB_NAME.Purged_TOBE WHERE Term = RNum);
+    SET Total = ASIS_T - TOBE_T;
+    
+    SET Total_Overcharge =  Total;
+    
+    WHILE RNum > 0
+    DO
+        BEGIN
+
+        CALL DBC.SysExecSQL(sSQL ='INSERT INTO LAB_NAME.Purged_Difference VALUES (
+        
+        '||acct||', '''|| ASIS_Date_Month ||''', '||ASIS_P||', '||ASIS_I||', '||ASIS_T||', '||ASIS_Year_Rate||',
+        
+        '||TOBE_acct||', '''|| TOBE_Date_Month ||''', '||TOBE_P||', '||TOBE_I||', '||TOBE_T||', '||TOBE_Year_Rate||',
+        
+        '||acct||', '''|| Date_Month ||''', '||Principal||', '||Interest||', '||Total||', '||Total_Overcharge||')');    
+        
+        SET RNum = RNum - 1;
+        --------------------------------------------------------------------------------------------------
+        SET acct = (SELECT Acct FROM LAB_NAME.Purged_ASIS WHERE Term = RNum);
+        SET TOBE_acct = (SELECT Acct FROM LAB_NAME.Purged_ASIS WHERE Term = RNum);
+
+        SET ASIS_Year_Rate = (SELECT Year_Rate FROM LAB_NAME.Purged_ASIS WHERE Term = RNum);
+        SET TOBE_Year_Rate = (SELECT Year_Rate FROM LAB_NAME.Purged_TOBE WHERE Term = RNum);
+    
+        SET ASIS_Date_Month = (SELECT MONTH_DATE FROM LAB_NAME.Purged_ASIS WHERE Term = RNum);
+        SET TOBE_Date_Month = (SELECT MONTH_DATE FROM LAB_NAME.Purged_TOBE WHERE Term = RNum);
+        SET Date_Month = (SELECT MONTH_DATE FROM LAB_NAME.Purged_ASIS WHERE Term = RNum);
+        
+        SET ASIS_P = (SELECT Principal FROM LAB_NAME.Purged_ASIS WHERE Term = RNum);
+        SET TOBE_P = (SELECT Principal FROM LAB_NAME.Purged_TOBE WHERE Term = RNum);
+        SET Principal = ASIS_P - TOBE_P;
+    
+        SET ASIS_I = (SELECT Interest FROM LAB_NAME.Purged_ASIS WHERE Term = RNum);
+        SET TOBE_I = (SELECT Interest FROM LAB_NAME.Purged_TOBE WHERE Term = RNum);
+        SET Interest = ASIS_I - TOBE_I;
+
+        SET ASIS_T = (SELECT Total FROM LAB_NAME.Purged_ASIS WHERE Term = RNum);
+        SET TOBE_T = (SELECT Total FROM LAB_NAME.Purged_TOBE WHERE Term = RNum);
+        SET Total = ASIS_T - TOBE_T;
+        
+        SET Total_Overcharge = Total_Overcharge + Total;
+        
+        END ;
+        
+    END while ;
+END;
