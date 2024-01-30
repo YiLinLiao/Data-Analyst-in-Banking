@@ -1,0 +1,71 @@
+---------------------------------------------------------------------------------------------------------------
+--Step 1: prepare and loading input table
+/*  Received customer information from business stakeholders, enter the required information in the format of the input form. 
+   --Open the input example table then fill it
+
+Note:
+-- (StartDate), the rate start applied date
+-- (EndDate), the last payment date with the same rate with StartDate
+-- (AMT), the loan amount balance when starting to calculate the wrong charge
+-- (Term), Loan term remaining
+-- (Rate), Year Rate
+-- (RNumber), we need to derive ourselves this is derived by recording a sequence from number 1 to the last line, in order to tell the procedure how many loop they can end the calculation 
+
+Start by dropping the previous run of the input table and create a new table as your base to input datapoints. */
+DROP TABLE LAB_NAME.Purged_Loan_input;
+CREATE TABLE LAB_NAME.Purged_Loan_input(
+Acct VARCHAR(20)
+,ProductType VARCHAR(20)
+,StartDate DATE
+,EndDate DATE
+,AMT DECIMAL(20,2)
+,Term INT
+,Rate DECIMAL(20,9)
+,MonthlyRate DECIMAL(20,9)
+,RankNum INT
+);
+
+INSERT INTO LAB_NAME.Purged_Loan_input VALUES(?,?,?,?,?,?,?,?,?);
+
+SELECT * FROM LAB_NAME.Purged_Loan_input ORDER BY RankNum;
+
+-------------------------------------------------------------------------
+/*Step 2: create the output table of Purged_pre_calculator
+before use the procedure Purged_pre_calculator, 
+We need to prepare a blank table to store the calculation results of its output
+*/
+DROP TABLE LAB_NAME.Purged_Loan_pre;
+CREATE TABLE LAB_NAME.Purged_Loan_pre(
+Acct VARCHAR(20)
+,MONTH_DATE DATE
+,Balance DECIMAL(20,2)
+,Principal DECIMAL(14,2)
+,Interest DECIMAL(14,2)
+,Total	DECIMAL(20,2)
+,Year_Rate DECIMAL(20,9)
+,Term INT
+);
+
+--Step 3: Obtain the parameter of Purged_pre_calculator();
+SELECT Max(RankNum) FROM LAB_NAME.Purged_Loan_input;
+
+--Step 4: Input the Rank number as parameter to tell the procedure how many time we need to switch the rate.
+CALL LAB_NAME.Purged_Var_calculator(3);
+--Be careful, even though it warns call fail, but the output table still obtained all the result.
+SELECT * FROM LAB_NAME.Purged_Loan_pre ORDER BY Term DESC;
+
+--Step 5: store a backup of this table, when someone else runs the above code, your data will not be lost
+CREATE TABLE LAB_NAME.Purged_CIE999 AS LAB_NAME.Purged_Loan_pre WITH DATA;  
+
+--Step 6:
+--Save your output TABLE WITH a NEW NAME, so we can know it IS ASIS TABLE OR TOBE TABLE
+
+--If it is ASIS table, run this code
+DROP TABLE LAB_NAME.Purged_ASIS;
+CREATE TABLE LAB_NAME.Purged_ASIS AS LAB_NAME.Purged_Loan_pre WITH DATA;  
+
+--If it is TOBE table, run this code：
+DROP TABLE LAB_NAME.Purged_TOBE;
+CREATE TABLE LAB_NAME.Purged_TOBE AS LAB_NAME.Purged_Loan_pre WITH DATA;  
+
+--Create ASIS and TOBE table, then obtain the difference table by Purged_Difference_Calculator.
