@@ -1,6 +1,6 @@
+TVM_Calculator Procedure
+----It is a procedure/function of Teradata, call it when you need it.
 
-
-TVM_Calculator
 REPLACE PROCEDURE LAB_NAME.TVM_Calculator(IN dRN INT)
 BEGIN
     DECLARE indexDate DATE;
